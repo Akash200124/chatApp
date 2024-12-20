@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        /* General Reset */
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        /* Main Container */
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+        }
+
+        .message.other {
+            background-color: #e9ecef;
+            color: #333;
+            align-self: flex-start;
+            text-align: left;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-top: 1px solid #ddd;
+        }
+
+        .chat-input-container input {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .chat-input-container button {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .chat-input-container button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Scrollbar Styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            Real-Time Chat App
+        </div>
+        <div class="chat-messages" id="divmessage">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" placeholder="Enter message" id="message">
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const message = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+        const allMessages = document.getElementById('divmessage');
+
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (message.value.trim() !== "") {
+                socket.emit('user-message:', message.value);
+                addMessage(message.value, 'user');
+                message.value = ""; // Clear input
+            }
+        });
+
+        // on enter key press
+        message.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default behavior
+                if (message.value.trim() !== "") {
+                    socket.emit('user-message:', message.value);
+                    addMessage(message.value, 'user');
+                    message.value = ""; // Clear input
+                }
+            }
+        });
+
+        socket.on("message", (msg) => {
+            addMessage(msg, 'other');
+        });
+
+        function addMessage(msg, sender) {
+            const p = document.createElement("div");
+            p.className = `message ${sender}`;
+            p.innerText = msg;
+            allMessages.appendChild(p);
+            allMessages.scrollTop = allMessages.scrollHeight; // Auto-scroll to the bottom
+        }
+    </script>
+</body>
+
+</html>
